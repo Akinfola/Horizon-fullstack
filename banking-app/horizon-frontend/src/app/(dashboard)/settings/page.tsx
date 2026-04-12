@@ -1,16 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import { usersApi } from "@/lib/api";
 import AlertModal from "@/components/ui/AlertModal";
 import { Loader2 } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function SettingsPage() {
   const { user, fetchMe } = useAuthStore();
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [firstName, setFirstName] = useState(user?.firstName || "");
   const [lastName, setLastName] = useState(user?.lastName || "");
@@ -22,7 +29,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true);
+    setIsSubmitting(true);
     try {
       await usersApi.updateProfile({ firstName, lastName, address, state, postalCode });
       await fetchMe();
@@ -30,9 +37,11 @@ export default function SettingsPage() {
     } catch {
       setError("Failed to update profile. Please try again.");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isPageLoading) return <LoadingSpinner message="Loading..." />;
 
   const inputStyle = {
     width: "100%",
@@ -121,10 +130,10 @@ export default function SettingsPage() {
 
           <button
             type="submit"
-            disabled={loading}
-            style={{ background: loading ? "#93c5fd" : "#2563eb", color: "white", fontWeight: "600", padding: "0.75rem 1rem", borderRadius: "0.5rem", border: "none", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.875rem" }}
+            disabled={isSubmitting}
+            style={{ background: isSubmitting ? "#93c5fd" : "#2563eb", color: "white", fontWeight: "600", padding: "0.75rem 1rem", borderRadius: "0.5rem", border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.875rem" }}
           >
-            {loading && <Loader2 size={16} />}
+            {isSubmitting && <Loader2 size={16} />}
             Save Changes
           </button>
         </form>

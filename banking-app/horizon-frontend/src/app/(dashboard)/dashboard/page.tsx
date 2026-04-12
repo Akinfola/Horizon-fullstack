@@ -34,6 +34,8 @@ export default function DashboardPage() {
         setError("Failed to load dashboard data. Please try again.");
         console.error(error);
       } finally {
+        // Enforce artificial 2-second delay for the visual loading animation
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         setLoading(false);
       }
     };
@@ -53,7 +55,7 @@ export default function DashboardPage() {
     fetchTransactions();
   }, [selectedAccountId]);
 
-  if (loading) return <LoadingSpinner message="Loading your dashboard..." />;
+  if (loading) return <LoadingSpinner message="Loading..." />;
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
 

@@ -80,13 +80,13 @@ export default function RegisterPage() {
       setModal({
         show: true, type: "success",
         title: "Account Created! 🎉",
-        message: `Welcome to Horizon Banking, ${firstName}! Your account has been created successfully. You'll be redirected to your dashboard now.`,
+        message: `Welcome to Horizon Banking, ${firstName}! Your account has been created successfully. You will be redirected to the login page shortly to sign in.`,
       });
-      setTimeout(() => router.push("/dashboard"), 2500);
+      setTimeout(() => router.push("/login"), 2500);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Please check your details and try again.";
 
-      if (msg.toLowerCase().includes("email already") || msg.toLowerCase().includes("email")) {
+      if (msg.toLowerCase().includes("email already in use") || msg.toLowerCase().includes("email already")) {
         setModal({
           show: true, type: "error",
           title: "Email Already Registered",

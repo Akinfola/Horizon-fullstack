@@ -6,9 +6,12 @@ import { BankAccount } from "@/types";
 import AlertModal from "@/components/ui/AlertModal";
 import { Loader2 } from "lucide-react";
 
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+
 export default function PaymentTransferPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
 
@@ -28,6 +31,9 @@ export default function PaymentTransferPage() {
         }
       } catch (error) {
         console.error(error);
+      } finally {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsPageLoading(false);
       }
     };
     fetchAccounts();
@@ -37,7 +43,7 @@ export default function PaymentTransferPage() {
     e.preventDefault();
     setError("");
     setSuccess("");
-    setLoading(true);
+    setIsSubmitting(true);
     try {
       await transfersApi.create({
         sourceBankId,
@@ -55,9 +61,11 @@ export default function PaymentTransferPage() {
       const message = err instanceof Error ? err.message : "Transfer failed";
       setError(message);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isPageLoading) return <LoadingSpinner message="Loading..." />;
 
   const inputStyle = {
     width: "100%",
@@ -203,10 +211,10 @@ export default function PaymentTransferPage() {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={loading}
-          style={{ width: "100%", background: loading ? "#93c5fd" : "#2563eb", color: "white", fontWeight: "600", padding: "0.875rem 1rem", borderRadius: "0.5rem", border: "none", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.875rem" }}
+          disabled={isSubmitting}
+          style={{ width: "100%", background: isSubmitting ? "#93c5fd" : "#2563eb", color: "white", fontWeight: "600", padding: "0.875rem 1rem", borderRadius: "0.5rem", border: "none", cursor: isSubmitting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem", fontSize: "0.875rem" }}
         >
-          {loading && <Loader2 size={16} />}
+          {isSubmitting && <Loader2 size={16} />}
           Transfer Funds
         </button>
       </form>

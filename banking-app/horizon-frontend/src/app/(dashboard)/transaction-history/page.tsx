@@ -6,6 +6,8 @@ import { BankAccount, Transaction } from "@/types";
 import AlertModal from "@/components/ui/AlertModal";
 import { formatCurrency, formatDate, getStatusStyle, getCategoryStyle } from "@/lib/utils";
 
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
+
 export default function TransactionHistoryPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -26,6 +28,8 @@ export default function TransactionHistoryPage() {
         setError("Failed to load accounts. Please try again.");
         console.error(error);
       } finally {
+        // Enforce artificial 2-second delay for the visual loading animation
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         setLoading(false);
       }
     };
@@ -49,13 +53,7 @@ export default function TransactionHistoryPage() {
     fetchTransactions();
   }, [selectedAccount, page]);
 
-  if (loading) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh" }}>
-        <p style={{ color: "#6b7280" }}>Loading...</p>
-      </div>
-    );
-  }
+  if (loading) return <LoadingSpinner message="Loading..." />;
 
   return (
     <div style={{ padding: "2rem" }}>

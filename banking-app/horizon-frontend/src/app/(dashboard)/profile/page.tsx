@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import AlertModal from "@/components/ui/AlertModal";
 import { Mail, MapPin, Calendar, User as UserIcon } from "lucide-react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function ProfilePage() {
   const { user } = useAuthStore();
@@ -11,6 +12,12 @@ export default function ProfilePage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsPageLoading(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const [formData, setFormData] = useState({
     firstName: user?.firstName || "",
@@ -59,6 +66,8 @@ export default function ProfilePage() {
     setIsEditing(false);
   };
 
+  if (isPageLoading) return <LoadingSpinner message="Loading..." />;
+
   return (
     <div className="flex flex-col gap-8 max-w-4xl">
       {/* Header */}
@@ -69,11 +78,10 @@ export default function ProfilePage() {
         </div>
         <button
           onClick={() => setIsEditing(!isEditing)}
-          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-            isEditing
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${isEditing
               ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
               : "bg-blue-600 text-white hover:bg-blue-700"
-          }`}
+            }`}
         >
           {isEditing ? "Cancel" : "Edit Profile"}
         </button>
@@ -117,11 +125,10 @@ export default function ProfilePage() {
                   value={formData.firstName}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
               <div>
@@ -134,11 +141,10 @@ export default function ProfilePage() {
                   value={formData.lastName}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
               <div>
@@ -152,11 +158,10 @@ export default function ProfilePage() {
                   value={formData.dateOfBirth}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
             </div>
@@ -179,11 +184,10 @@ export default function ProfilePage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   disabled={!isEditing}
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
             </div>
@@ -207,11 +211,10 @@ export default function ProfilePage() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Enter your street address"
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
               <div>
@@ -225,11 +228,10 @@ export default function ProfilePage() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Enter state"
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
               <div>
@@ -243,11 +245,10 @@ export default function ProfilePage() {
                   onChange={handleInputChange}
                   disabled={!isEditing}
                   placeholder="Enter postal code"
-                  className={`w-full px-4 py-2 rounded-lg border ${
-                    isEditing
+                  className={`w-full px-4 py-2 rounded-lg border ${isEditing
                       ? "border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       : "border-gray-200 bg-gray-50 text-gray-600"
-                  } outline-none transition-colors`}
+                    } outline-none transition-colors`}
                 />
               </div>
             </div>

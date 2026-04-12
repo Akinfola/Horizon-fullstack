@@ -40,11 +40,21 @@ export default function LoginPage() {
         message: "You have successfully logged in. Redirecting you to your dashboard...",
       });
       setTimeout(() => router.push("/dashboard"), 2500);
-    } catch {
+    } catch (err: unknown) {
+      let errorMsg = "The email or password you entered is incorrect. Please double-check your credentials and try again.";
+      if (err && typeof err === "object" && "response" in err) {
+        const axiosErr = err as { response?: { data?: { message?: string } } };
+        if (axiosErr.response?.data?.message) {
+          errorMsg = axiosErr.response.data.message;
+        }
+      } else if (err instanceof Error) {
+        errorMsg = err.message;
+      }
+
       setModal({
         show: true, type: "error",
         title: "Login Failed",
-        message: "The email or password you entered is incorrect. Please double-check your credentials and try again.",
+        message: errorMsg,
       });
     }
   };

@@ -6,11 +6,12 @@ import { generateToken } from "../../utils/jwt";
 import { RegisterInput, LoginInput } from "./auth.types";
 
 export const registerService = async (input: RegisterInput) => {
+  const normalizedEmail = input.email.toLowerCase().trim();
   try {
     const existing = await db
       .select()
       .from(users)
-      .where(eq(users.email, input.email))
+      .where(eq(users.email, normalizedEmail))
       .limit(1);
 
     if (existing.length > 0) {
@@ -24,7 +25,7 @@ export const registerService = async (input: RegisterInput) => {
       .values({
         firstName: input.firstName,
         lastName: input.lastName,
-        email: input.email,
+        email: normalizedEmail,
         password: hashedPassword,
         address: input.address,
         state: input.state,
@@ -46,18 +47,24 @@ export const registerService = async (input: RegisterInput) => {
       },
       accessToken: token,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("🔴 FULL ERROR:", error);
-    throw error;
+    // If it's the error we manually threw, re-throw it
+    if (error.message === "Email already in use") {
+      throw error;
+    }
+    // Prevent SQL leakage and provide a clean error for unique constraints (like SSN)
+    throw new Error("An account with these details already exists.");
   }
 };
 
 export const loginService = async (input: LoginInput) => {
+  const normalizedEmail = input.email.toLowerCase().trim();
   try {
     const [user] = await db
       .select()
       .from(users)
-      .where(eq(users.email, input.email))
+      .where(eq(users.email, normalizedEmail))
       .limit(1);
 
     if (!user) {

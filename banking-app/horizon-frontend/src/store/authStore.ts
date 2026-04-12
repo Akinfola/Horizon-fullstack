@@ -38,9 +38,9 @@ export const useAuthStore = create<AuthState>()(
         try {
           const res = await authApi.register(data);
           // Don't auto-login after registration - user must login manually
-          const { user, accessToken } = res.data.data;
-          Cookies.set("accessToken", accessToken, { expires: 7 });
-          set({ user, isAuthenticated: true });
+          // const { user, accessToken } = res.data.data;
+          // Cookies.set("accessToken", accessToken, { expires: 7 });
+          // set({ user, isAuthenticated: true });
         } catch (error: any) {
           const errorMessage = error?.response?.data?.message || "Registration failed. Please try again.";
           throw new Error(errorMessage);
