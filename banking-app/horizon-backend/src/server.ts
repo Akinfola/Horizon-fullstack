@@ -1,0 +1,98 @@
+import * as dotenv from "dotenv";
+import express from "express";
+import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
+
+dotenv.config();
+
+import { errorHandler } from "./middlewares/error.middleware";
+import budgetRoutes from "./modules/budgets/budgets.routes";
+import authRoutes from "./modules/auth/auth.routes";
+import accountRoutes from "./modules/accounts/accounts.routes";
+import transactionRoutes from "./modules/transactions/transactions.routes";
+import transferRoutes from "./modules/transfers/transfers.routes";
+import cardRoutes from "./modules/cards/cards.routes";
+import loanRoutes from "./modules/loans/loans.routes";
+import adminRoutes from "./modules/admin/admin.routes";
+
+dotenv.config();
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+const allowedOrigins = process.env.CLIENT_URLS
+  ? process.env.CLIENT_URLS.split(",").map((url) => url.trim())
+  : [
+      
+    ];
+
+const httpServer = http.createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log(`✅ Socket connected: ${socket.id}`);
+
+  socket.on("joinRoom", (room: string) => {
+    socket.join(room);
+    console.log(`➡️ Socket ${socket.id} joined room ${room}`);
+  });
+});
+
+app.set("io", io);
+
+// FINAL: Working CORS middleware
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow Postman, mobile apps, server-to-server
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("❌ BLOCKED BY CORS:", origin);
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  })
+);
+
+// Body parsing middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Routes
+app.use("/api/budgets", budgetRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/accounts", accountRoutes);
+app.use("/api/transactions", transactionRoutes);
+app.use("/api/transfers", transferRoutes);
+app.use("/api/cards", cardRoutes);
+app.use("/api/loans", loanRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.get("/", (req, res) => {
+  res.json({ message: "Horizon Banking API is running! 🚀" });
+});
+
+// Error handler
+app.use(errorHandler);
+
+// Start server
+httpServer.listen(PORT, () => {
+  console.log(`✅ Server running on port http://localhost:${PORT}`);
+});
+
+// app.listen(PORT, () => {
+//   console.log(`✅ Server running on http://localhost:${PORT}`);
+// });
+
+export default app;

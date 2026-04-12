@@ -1,0 +1,8 @@
+{
+  "schema": "./src/config/schema.ts",
+  "out": "./drizzle",
+  "dialect": "postgresql",
+  "dbCredentials": {
+    "url": "postgresql://postgres:A7k6i5n4f3o2l1a0@localhost:5432/horizonbank"
+  }
+}
