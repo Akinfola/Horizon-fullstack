@@ -41,19 +41,17 @@ export default function LoginPage() {
       });
       setTimeout(() => router.push("/dashboard"), 2500);
     } catch (err: unknown) {
-      let errorMsg = "The email or password you entered is incorrect. Please double-check your credentials and try again.";
-      if (err && typeof err === "object" && "response" in err) {
-        const axiosErr = err as { response?: { data?: { message?: string } } };
-        if (axiosErr.response?.data?.message) {
-          errorMsg = axiosErr.response.data.message;
-        }
-      } else if (err instanceof Error) {
-        errorMsg = err.message;
+      const axiosErr = err as any;
+      let errorMsg = axiosErr?.response?.data?.message || axiosErr?.message || "Invalid credentials. Please try again.";
+      let errorTitle = "Login Failed";
+
+      if (axiosErr?.response?.status === 423) {
+        errorTitle = "Account Locked";
       }
 
       setModal({
         show: true, type: "error",
-        title: "Login Failed",
+        title: errorTitle,
         message: errorMsg,
       });
     }
@@ -111,6 +109,11 @@ export default function LoginPage() {
             >
               {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
+          </div>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.5rem" }}>
+            <Link href="/forgot-password" style={{ fontSize: "0.875rem", color: "#2563eb", fontWeight: "500", textDecoration: "none" }}>
+              Forgot password?
+            </Link>
           </div>
         </div>
 

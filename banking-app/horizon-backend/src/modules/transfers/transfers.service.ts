@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../../config/db";
 import { accounts, transactions, users } from "../../config/schema";
+import { createAuditLog } from "../audit/audit.service";
 
 export const createTransferService = async (input: {
   sourceBankId: string;
@@ -76,6 +77,18 @@ export const createTransferService = async (input: {
     accountId: recipientAccount.id,
     senderBankId: sourceAccount.id,
     receiverBankId: recipientAccount.id,
+  });
+
+  await createAuditLog({
+    userId: input.userId,
+    action: "TRANSFER_CREATED",
+    entityType: "transaction",
+    metadata: {
+      amount: input.amount,
+      recipientEmail: input.recipientEmail,
+      sourceAccountId: sourceAccount.id,
+      recipientAccountId: recipientAccount.id,
+    },
   });
 
   return { message: "Transfer successful", amount: input.amount };

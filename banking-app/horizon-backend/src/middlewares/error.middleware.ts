@@ -4,12 +4,18 @@ export const errorHandler = (
   err: Error,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
-  console.error(err.stack);
+  const isProduction = process.env.NODE_ENV === "production";
+
+  // Never expose internal stack traces or raw error messages in production
+  if (!isProduction) {
+    console.error("🔴 Unhandled Error:", err.stack);
+  }
+
   res.status(500).json({
     success: false,
-    message: err.message || "Internal Server Error",
+    message: isProduction ? "Internal Server Error" : err.message,
     data: null,
   });
 };

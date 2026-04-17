@@ -7,13 +7,20 @@ export interface AuthRequest extends Request {
 }
 
 export const protect = (req: AuthRequest, res: Response, next: NextFunction) => {
-  const authHeader = req.headers.authorization;
+  let token: string | undefined;
 
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return sendError(res, "Not authorized, no token", 401);
+  // 1. Check cookies first
+  if (req.cookies && req.cookies.accessToken) {
+    token = req.cookies.accessToken;
+  }
+  // 2. Fallback to Authorization header
+  else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+    token = req.headers.authorization.split(" ")[1];
   }
 
-  const token = authHeader.split(" ")[1];
+  if (!token) {
+    return sendError(res, "Not authorized, no token", 401);
+  }
 
   try {
     const decoded = verifyToken(token);

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/register"];
+const publicRoutes = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 export function middleware(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value;
@@ -22,6 +22,6 @@ export const config = {
   matcher: [
     "/dashboard", "/my-banks", "/transaction-history",
     "/payment-transfer", "/settings", "/profile",
-    "/login", "/register",
+    "/login", "/register", "/forgot-password", "/reset-password",
   ],
 };

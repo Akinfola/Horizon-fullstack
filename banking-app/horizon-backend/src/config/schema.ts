@@ -5,6 +5,7 @@ import {
   text,
   numeric,
   integer,
+  boolean,
   timestamp,
   pgEnum,
 } from "drizzle-orm/pg-core";
@@ -23,6 +24,15 @@ export const cardVariantEnum = pgEnum("card_variant", ["blue", "purple"]);
 export const cardNetworkEnum = pgEnum("card_network", ["visa", "mastercard"]);
 export const cardStatusEnum = pgEnum("card_status", ["active", "frozen", "cancelled"]);
 export const loanStatusEnum = pgEnum("loan_status", ["pending", "active", "paid", "rejected"]);
+export const auditActionEnum = pgEnum("audit_action", [
+  "LOGIN_SUCCESS", "LOGIN_FAILED", "LOGOUT",
+  "REGISTER", "VERIFY_EMAIL",
+  "PASSWORD_RESET_REQUEST", "PASSWORD_RESET_SUCCESS",
+  "ACCOUNT_LOCKED",
+  "TRANSFER_CREATED",
+  "CARD_FROZEN", "CARD_UNFROZEN",
+  "USER_PROFILE_UPDATED"
+]);
 
 // ─── Users ───────────────────────────────────────────────
 export const users = pgTable("users", {
@@ -37,6 +47,13 @@ export const users = pgTable("users", {
   dateOfBirth: varchar("date_of_birth", { length: 20 }),
   ssn:         varchar("ssn", { length: 4 }).unique(),
   role:        userRoleEnum("role").default("user").notNull(),
+  isVerified:          boolean("is_verified").default(false).notNull(),
+  verificationToken:   varchar("verification_token", { length: 255 }),
+  verificationTokenExpiry: timestamp("verification_token_expiry"),
+  resetPasswordToken:  varchar("reset_password_token", { length: 255 }),
+  resetPasswordExpiry: timestamp("reset_password_expiry"),
+  failedLoginAttempts: integer("failed_login_attempts").default(0).notNull(),
+  lockedUntil:         timestamp("locked_until"),
   createdAt:   timestamp("created_at").defaultNow().notNull(),
   updatedAt:   timestamp("updated_at").defaultNow().notNull(),
 });
@@ -114,5 +131,18 @@ export const budgets = pgTable("budgets", {
   spent:     numeric("spent", { precision: 15, scale: 2 }).default("0").notNull(),
   icon:      varchar("icon", { length: 50 }),
   color:     varchar("color", { length: 20 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+ 
+// ─── Audit Logs ───────────────────────────────────────────
+export const auditLogs = pgTable("audit_logs", {
+  id:        uuid("id").primaryKey().defaultRandom(),
+  userId:    uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  action:    auditActionEnum("action").notNull(),
+  entityType: varchar("entity_type", { length: 50 }),
+  entityId:   uuid("entity_id"),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  metadata:  text("metadata"), // Stringified JSON or just text context
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

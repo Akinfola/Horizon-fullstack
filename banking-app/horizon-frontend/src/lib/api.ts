@@ -1,24 +1,23 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 export const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
-  const token = Cookies.get("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Manual token handling removed. Browser will automatically send httpOnly cookies.
   return config;
 });
 
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
-      Cookies.remove("accessToken");
+    const isAuthRoute = error.config?.url?.includes("/auth/login") || error.config?.url?.includes("/auth/register");
+    if (error.response?.status === 401 && !isAuthRoute) {
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -30,6 +29,10 @@ export const authApi = {
     api.post("/auth/login", data),
   register: (data: object) => api.post("/auth/register", data),
   me: () => api.get("/auth/me"),
+  logout: () => api.post("/auth/logout"),
+  forgotPassword: (email: string) => api.post("/auth/forgot-password", { email }),
+  resetPassword: (token: string, data: object) =>
+    api.post(`/auth/reset-password?token=${token}`, data),
 };
 
 export const accountsApi = {

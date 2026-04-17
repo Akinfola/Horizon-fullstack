@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { db } from "../../config/db";
 import { cards } from "../../config/schema";
+import { createAuditLog } from "../audit/audit.service";
 
 export const getCardsService = async (userId: string) => {
   return await db
@@ -25,6 +26,13 @@ export const freezeCardService = async (id: string, userId: string) => {
     .where(eq(cards.id, id))
     .returning();
 
+  await createAuditLog({
+    userId,
+    action: "CARD_FROZEN",
+    entityType: "card",
+    entityId: id,
+  });
+
   return updated;
 };
 
@@ -43,6 +51,13 @@ export const unfreezeCardService = async (id: string, userId: string) => {
     .set({ status: "active" })
     .where(eq(cards.id, id))
     .returning();
+
+  await createAuditLog({
+    userId,
+    action: "CARD_UNFROZEN",
+    entityType: "card",
+    entityId: id,
+  });
 
   return updated;
 };

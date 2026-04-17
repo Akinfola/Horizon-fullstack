@@ -8,6 +8,8 @@ import { Loader2 } from "lucide-react";
 
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
+import { getErrorMessage } from "@/utils/errorUtils";
+
 export default function PaymentTransferPage() {
   const [accounts, setAccounts] = useState<BankAccount[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -58,8 +60,7 @@ export default function PaymentTransferPage() {
       setAmount("");
       setNote("");
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Transfer failed";
-      setError(message);
+      setError(getErrorMessage(err));
     } finally {
       setIsSubmitting(false);
     }
