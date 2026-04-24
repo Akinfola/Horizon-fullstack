@@ -31,7 +31,7 @@ export const registerService = async (input: RegisterInput) => {
     const hashedPassword = await bcrypt.hash(input.password, 12);
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
  
     const [newUser] = await db
       .insert(users)
@@ -56,12 +56,12 @@ export const registerService = async (input: RegisterInput) => {
     await sendEmail(
       newUser.email,
       "Verify Your Horizon Banking Account",
-      `Hello ${newUser.firstName},\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 5 minutes.\n\nIf you did not create an account, you can safely ignore this email.`,
+      `Hello ${newUser.firstName},\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 15 minutes.\n\nIf you did not create an account, you can safely ignore this email.`,
       `<h2>Welcome to Horizon Banking, ${newUser.firstName}!</h2>
        <p>Please verify your email address to activate your account.</p>
        <a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1a56db;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
        <p>Or copy and paste this link into your browser:<br/>${verifyUrl}</p>
-       <p><strong>This link expires in 5 minutes.</strong></p>
+       <p><strong>This link expires in 15 minutes.</strong></p>
        <p>If you did not create an account, you can safely ignore this email.</p>`
     );
 
@@ -110,7 +110,7 @@ export const resendVerificationService = async (email: string) => {
   }
 
   const verificationToken = crypto.randomBytes(32).toString("hex");
-  const verificationTokenExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+  const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
   await db
     .update(users)
@@ -127,13 +127,13 @@ export const resendVerificationService = async (email: string) => {
   await sendEmail(
     user.email,
     "Verify Your Horizon Banking Account (New Link)",
-    `Hello ${user.firstName},\n\nYou requested a new verification link. Click the link below to verify your email:\n${verifyUrl}\n\nThis link expires in 5 minutes.\n\nIf you did not request this, you can safely ignore this email.`,
+    `Hello ${user.firstName},\n\nYou requested a new verification link. Click the link below to verify your email:\n${verifyUrl}\n\nThis link expires in 15 minutes.\n\nIf you did not request this, you can safely ignore this email.`,
     `<h2>Account Verification Request</h2>
      <p>Hello ${user.firstName},</p>
      <p>You requested a new verification link for your Horizon Banking account.</p>
      <a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1a56db;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
      <p>Or copy and paste this link into your browser:<br/>${verifyUrl}</p>
-     <p><strong>This link expires in 5 minutes.</strong></p>
+     <p><strong>This link expires in 15 minutes.</strong></p>
      <p>If you did not request this, you can safely ignore this email.</p>`
   );
 

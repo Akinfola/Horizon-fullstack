@@ -17,10 +17,23 @@ export default function DashboardPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [totalBalance, setTotalBalance] = useState(0);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Handle hydration to ensure store is loaded before rendering
   useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const balanceRes = await accountsApi.getTotalBalance();
@@ -34,13 +47,13 @@ export default function DashboardPage() {
         setError("Failed to load dashboard data. Please try again.");
         console.error(error);
       } finally {
-        // Enforce artificial 2-second delay for the visual loading animation
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Enforce artificial 1.5-second delay for the visual loading animation
+        await new Promise((resolve) => setTimeout(resolve, 1500));
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [isHydrated, user, router]);
 
   useEffect(() => {
     if (!selectedAccountId) return;
@@ -55,7 +68,9 @@ export default function DashboardPage() {
     fetchTransactions();
   }, [selectedAccountId]);
 
-  if (loading) return <LoadingSpinner message="Loading..." />;
+  if (!isHydrated || loading) return <LoadingSpinner message="Loading..." />;
+
+  if (!user) return null; // Safety return while redirecting
 
   const selectedAccount = accounts.find(a => a.id === selectedAccountId);
 
