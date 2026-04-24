@@ -12,6 +12,7 @@ function VerifyEmailContent() {
   const token = searchParams.get("token");
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState("Verifying your email address...");
+  const [countdown, setCountdown] = useState(3);
 
   useEffect(() => {
     if (!token) {
@@ -24,12 +25,12 @@ function VerifyEmailContent() {
       try {
         await authApi.verifyEmail(token);
         setStatus("success");
-        setMessage("Your email has been verified successfully! You can now log in.");
+        setMessage("Your email has been verified! Redirecting you to login...");
       } catch (err: any) {
         const errorMsg = err.response?.data?.message || "";
         if (errorMsg.toLowerCase().includes("already verified")) {
           setStatus("success");
-          setMessage("Your email is already verified. You can proceed to log in.");
+          setMessage("Your email is already verified. Redirecting you to login...");
         } else {
           setStatus("error");
           setMessage(errorMsg || "Verification failed. The link may have expired.");
@@ -39,6 +40,19 @@ function VerifyEmailContent() {
 
     verify();
   }, [token]);
+
+  // Auto-redirect countdown on success
+  useEffect(() => {
+    if (status !== "success") return;
+
+    if (countdown <= 0) {
+      router.push("/login");
+      return;
+    }
+
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [status, countdown, router]);
 
   return (
     <div style={{ textAlign: "center", padding: "2rem" }}>
@@ -52,7 +66,13 @@ function VerifyEmailContent() {
         {status === "loading" ? "Verifying..." : status === "success" ? "Verified!" : "Verification Failed"}
       </h1>
 
-      <p style={{ color: "#6b7280", marginBottom: "2rem" }}>{message}</p>
+      <p style={{ color: "#6b7280", marginBottom: "0.5rem" }}>{message}</p>
+
+      {status === "success" && (
+        <p style={{ color: "#9ca3af", fontSize: "0.875rem", marginBottom: "2rem" }}>
+          Redirecting in {countdown}s...
+        </p>
+      )}
 
       {status !== "loading" && (
         <Link
