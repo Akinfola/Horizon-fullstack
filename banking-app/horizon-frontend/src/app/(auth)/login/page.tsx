@@ -9,7 +9,7 @@ import AlertModal from "@/components/ui/AlertModal";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading } = useAuthStore();
+  const { login, resendVerification, isLoading } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +18,33 @@ export default function LoginPage() {
     type: "success" | "error";
     title: string;
     message: string;
+    buttonLabel?: string;
+    resendEmail?: string;
   } | null>(null);
+
+  const handleModalClose = async () => {
+    const emailToResend = modal?.resendEmail;
+    setModal(null);
+
+    if (emailToResend) {
+      try {
+        await resendVerification(emailToResend);
+        setModal({
+          show: true,
+          type: "success",
+          title: "Link Sent! 📩",
+          message: "A new verification link has been sent to your email. Please check your inbox (and spam folder).",
+        });
+      } catch (err: any) {
+        setModal({
+          show: true,
+          type: "error",
+          title: "Resend Failed",
+          message: err.message || "Failed to resend verification link. Please try again later.",
+        });
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,10 +75,14 @@ export default function LoginPage() {
         errorTitle = "Account Locked";
       }
 
+      const isVerificationError = errorMsg.toLowerCase().includes("verify");
+
       setModal({
         show: true, type: "error",
         title: errorTitle,
         message: errorMsg,
+        buttonLabel: isVerificationError ? "Verify" : undefined,
+        resendEmail: isVerificationError ? email : undefined,
       });
     }
   };
@@ -144,7 +174,8 @@ export default function LoginPage() {
           type={modal.type}
           title={modal.title}
           message={modal.message}
-          onClose={() => setModal(null)}
+          buttonLabel={modal.buttonLabel}
+          onClose={handleModalClose}
           autoClose={modal.type === "success"}
         />
       )}

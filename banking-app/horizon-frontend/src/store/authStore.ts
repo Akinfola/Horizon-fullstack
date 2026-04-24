@@ -14,6 +14,7 @@ interface AuthState {
   fetchMe: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, data: object) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -82,6 +83,17 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           await authApi.resetPassword(token, data);
+        } catch (error: any) {
+          throw new Error(getErrorMessage(error));
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      resendVerification: async (email) => {
+        set({ isLoading: true });
+        try {
+          await authApi.resendVerification(email);
         } catch (error: any) {
           throw new Error(getErrorMessage(error));
         } finally {

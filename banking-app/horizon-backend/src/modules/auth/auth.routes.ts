@@ -5,6 +5,7 @@ import {
   logout,
   getMe,
   verifyEmail,
+  resendVerification,
   forgotPassword,
   resetPassword,
 } from "./auth.controller";
@@ -44,6 +45,19 @@ export const forgotPasswordRateLimiter = rateLimit({
   },
 });
 
+// Rate limiter for resend verification — max 3 requests per 15 minutes per IP
+export const resendVerificationRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    success: false,
+    message: "Too many requests. Please wait 15 minutes before requesting another verification link.",
+    data: null,
+  },
+});
+
 const router = Router();
 
 // Public routes
@@ -51,6 +65,7 @@ router.post("/register", validateRequest({ body: registerSchema }), register);
 router.post("/login", loginRateLimiter, validateRequest({ body: loginSchema }), login);
 router.post("/logout", logout);
 router.get("/verify-email", verifyEmail);
+router.post("/resend-verification", resendVerificationRateLimiter, resendVerification);
 router.post("/forgot-password", forgotPasswordRateLimiter, validateRequest({ body: forgotPasswordSchema }), forgotPassword);
 router.post("/reset-password", validateRequest({ body: resetPasswordSchema }), resetPassword);
 

@@ -100,6 +100,10 @@ app.use("/api/cards", cardRoutes);
 app.use("/api/loans", loanRoutes);
 app.use("/api/admin", adminRoutes);
 
+app.get("/api/health", (req, res) => {
+  res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "Horizon Banking API is running! 🚀" });
 });

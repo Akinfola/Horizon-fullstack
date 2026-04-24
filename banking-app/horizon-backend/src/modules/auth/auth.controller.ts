@@ -4,6 +4,7 @@ import {
   loginService,
   getMeService,
   verifyEmailService,
+  resendVerificationService,
   forgotPasswordService,
   resetPasswordService,
 } from "./auth.service";
@@ -60,6 +61,20 @@ export const verifyEmail = async (req: Request, res: Response) => {
     return sendSuccess(res, null, result.message);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Email verification failed";
+    return sendError(res, message, 400);
+  }
+};
+
+// ─── Resend Verification ──────────────────────────────────────────────────────
+
+export const resendVerification = async (req: Request, res: Response) => {
+  try {
+    const { email } = req.body;
+    if (!email) return sendError(res, "Email is required", 400);
+    const result = await resendVerificationService(email);
+    return sendSuccess(res, null, result.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Failed to resend verification";
     return sendError(res, message, 400);
   }
 };

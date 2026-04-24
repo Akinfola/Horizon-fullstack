@@ -33,6 +33,7 @@ export const authApi = {
   forgotPassword: (email: string) => api.post("/auth/forgot-password", { email }),
   resetPassword: (token: string, data: object) =>
     api.post(`/auth/reset-password?token=${token}`, data),
+  resendVerification: (email: string) => api.post("/auth/resend-verification", { email }),
 };
 
 export const accountsApi = {

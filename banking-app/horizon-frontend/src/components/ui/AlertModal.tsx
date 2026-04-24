@@ -7,9 +7,10 @@ interface AlertModalProps {
   message: string;
   onClose: () => void;
   autoClose?: boolean;
+  buttonLabel?: string;
 }
 
-export default function AlertModal({ type, title, message, onClose, autoClose = true }: AlertModalProps) {
+export default function AlertModal({ type, title, message, onClose, autoClose = true, buttonLabel }: AlertModalProps) {
   const [visible, setVisible] = useState(false);
   const [leaving, setLeaving] = useState(false);
 
@@ -59,7 +60,7 @@ export default function AlertModal({ type, title, message, onClose, autoClose = 
             <h3 style={{ fontSize: "1.25rem", fontWeight: "700", color: isSuccess ? "#14532d" : "#7f1d1d", marginBottom: "0.5rem" }}>{title}</h3>
             <p style={{ fontSize: "0.875rem", color: "#6b7280", lineHeight: "1.6", marginBottom: "1.5rem" }}>{message}</p>
             <button onClick={handleClose} style={{ width: "100%", padding: "0.75rem", borderRadius: "0.5rem", border: "none", backgroundColor: isSuccess ? "#16a34a" : "#dc2626", color: "white", fontSize: "0.875rem", fontWeight: "600", cursor: "pointer" }}>
-              {isSuccess ? "Continue" : "Try Again"}
+              {buttonLabel || (isSuccess ? "Continue" : "Try Again")}
             </button>
           </div>
           {autoClose && (
