@@ -26,8 +26,14 @@ function VerifyEmailContent() {
         setStatus("success");
         setMessage("Your email has been verified successfully! You can now log in.");
       } catch (err: any) {
-        setStatus("error");
-        setMessage(err.response?.data?.message || "Verification failed. The link may have expired.");
+        const errorMsg = err.response?.data?.message || "";
+        if (errorMsg.toLowerCase().includes("already verified")) {
+          setStatus("success");
+          setMessage("Your email is already verified. You can proceed to log in.");
+        } else {
+          setStatus("error");
+          setMessage(errorMsg || "Verification failed. The link may have expired.");
+        }
       }
     };
 

@@ -32,8 +32,8 @@ export const login = async (req: Request, res: Response) => {
     // Set HttpOnly cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true",
+      sameSite: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true" ? "none" : "lax",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 

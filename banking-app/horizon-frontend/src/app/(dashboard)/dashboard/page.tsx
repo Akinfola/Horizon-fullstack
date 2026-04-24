@@ -6,7 +6,7 @@ import { useAuthStore } from "@/store/authStore";
 import { accountsApi, transactionsApi } from "@/lib/api";
 import { BankAccount, Transaction } from "@/types";
 import AlertModal from "@/components/ui/AlertModal";
-import { formatCurrency, formatDate, getStatusStyle, getCategoryStyle } from "@/lib/utils";
+import { formatCurrency, formatDate, getStatusStyle, getCategoryStyle, cn } from "@/lib/utils";
 import { Plus } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
@@ -211,14 +211,18 @@ export default function DashboardPage() {
                           {isCredit ? "+" : "-"}{formatCurrency(Math.abs(Number(tx.amount)))}
                         </td>
                         <td style={{ padding: "1rem 1.5rem" }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.375rem", borderRadius: "9999px", padding: "0.125rem 0.625rem", fontSize: "0.75rem", fontWeight: "500", backgroundColor: statusStyle.bg, color: statusStyle.text, whiteSpace: "nowrap" }}>
-                            <span style={{ width: "6px", height: "6px", borderRadius: "9999px", backgroundColor: statusStyle.dot }} />
+                          <span 
+                            className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium whitespace-nowrap", statusStyle.bg, statusStyle.text)}
+                          >
+                            <span className={cn("h-1.5 w-1.5 rounded-full", statusStyle.dot)} />
                             {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
                           </span>
                         </td>
                         <td style={{ padding: "1rem 1.5rem", fontSize: "0.875rem", color: "#6b7280", whiteSpace: "nowrap" }}>{formatDate(tx.date)}</td>
                         <td style={{ padding: "1rem 1.5rem" }}>
-                          <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", borderRadius: "9999px", border: "1px solid", padding: "0.125rem 0.625rem", fontSize: "0.75rem", fontWeight: "500", backgroundColor: categoryStyle.bg, color: categoryStyle.text, whiteSpace: "nowrap" }}>
+                          <span 
+                            className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium whitespace-nowrap", categoryStyle.bg, categoryStyle.text, categoryStyle.border)}
+                          >
                             {categoryStyle.label}
                           </span>
                         </td>
@@ -233,7 +237,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Right Panel - Hide on mobile */}
-      <div style={{ width: "300px", borderLeft: "1px solid #e5e7eb", padding: "2rem", overflowY: "auto", backgroundColor: "white", flexShrink: 0, display: "none" }} className="hidden md:block md:w-80">
+      <div style={{ width: "300px", borderLeft: "1px solid #e5e7eb", padding: "2rem", overflowY: "auto", backgroundColor: "white", flexShrink: 0 }} className="hidden md:block md:w-80">
         {/* User Profile */}
         <div style={{ marginBottom: "2rem", paddingBottom: "1.5rem", borderBottom: "1px solid #f3f4f6" }}>
           <div style={{ width: "4rem", height: "4rem", borderRadius: "9999px", backgroundColor: "#f3f4f6", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "1rem", fontSize: "1.5rem" }}>
