@@ -8,7 +8,7 @@ import { sendEmail } from "../../utils/mailer";
 import { RegisterInput, LoginInput } from "./auth.types";
 import { createAuditLog } from "../audit/audit.service";
 
-const CLIENT_URL = process.env.CLIENT_URL || "http://172.20.10.4:3000";
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MINUTES = 5;
 
@@ -31,7 +31,7 @@ export const registerService = async (input: RegisterInput) => {
     const hashedPassword = await bcrypt.hash(input.password, 12);
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
  
     const [newUser] = await db
       .insert(users)
@@ -110,7 +110,7 @@ export const resendVerificationService = async (email: string) => {
   }
 
   const verificationToken = crypto.randomBytes(32).toString("hex");
-  const verificationTokenExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+  const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
   await db
     .update(users)
@@ -174,7 +174,20 @@ export const verifyEmailService = async (token: string) => {
     action: "VERIFY_EMAIL",
   });
 
-  return { message: "Email verified successfully. You can now log in." };
+  // Issue a token so the user is auto-logged in
+  const accessToken = generateToken(user.id, user.role);
+
+  return {
+    message: "Email verified successfully.",
+    accessToken,
+    user: {
+      id: user.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+    },
+  };
 };
 
 // ─── Login ─────────────────────────────────────────────────────────────────────

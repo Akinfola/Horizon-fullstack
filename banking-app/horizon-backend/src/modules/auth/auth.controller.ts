@@ -58,7 +58,16 @@ export const verifyEmail = async (req: Request, res: Response) => {
   try {
     const { token } = req.query as { token: string };
     const result = await verifyEmailService(token);
-    return sendSuccess(res, null, result.message);
+
+    // Issue an auth cookie so the user is auto-logged in after verification
+    res.cookie("accessToken", result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true",
+      sameSite: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true" ? "none" : "lax",
+      maxAge: 60 * 60 * 1000, // 1 hour
+    });
+
+    return sendSuccess(res, { user: result.user }, result.message);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Email verification failed";
     return sendError(res, message, 400);
