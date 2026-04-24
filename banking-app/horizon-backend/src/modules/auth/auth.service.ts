@@ -10,7 +10,7 @@ import { createAuditLog } from "../audit/audit.service";
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:3000";
 const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_DURATION_MINUTES = 15;
+const LOCKOUT_DURATION_MINUTES = 5;
 
 // ─── Register ─────────────────────────────────────────────────────────────────
 
