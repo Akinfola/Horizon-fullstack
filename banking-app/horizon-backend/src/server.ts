@@ -68,7 +68,11 @@ app.use(
       // Allow Postman, mobile apps, server-to-server
       if (!origin) return callback(null, true);
 
-      if (allowedOrigins.includes(origin)) {
+      // Check if origin is in the allowedOrigins list (handling trailing slashes)
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      const isAllowed = allowedOrigins.some(allowed => allowed.replace(/\/$/, "") === normalizedOrigin);
+
+      if (isAllowed || origin.endsWith(".vercel.app")) {
         return callback(null, true);
       }
 
