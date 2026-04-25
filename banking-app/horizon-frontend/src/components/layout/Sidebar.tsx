@@ -23,7 +23,7 @@ export default function Sidebar() {
   const handleLogout = () => { logout(); router.push("/login"); };
 
   const navContent = (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "1.5rem 1rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "1.5rem 1rem", paddingBottom: "2.5rem" }}>
       {/* Logo Row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <Link href="/dashboard" onClick={() => setIsOpen(false)} style={{ display: "flex", alignItems: "center", gap: "0.5rem", textDecoration: "none" }}>
@@ -142,7 +142,7 @@ export default function Sidebar() {
             position: fixed;
             top: 0;
             left: 0;
-            height: 100vh;
+            height: 100dvh;
             width: 280px;
             background: white;
             box-shadow: 4px 0 24px rgba(0,0,0,0.12);
