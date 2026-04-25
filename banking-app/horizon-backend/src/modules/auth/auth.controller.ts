@@ -32,11 +32,11 @@ export const login = async (req: Request, res: Response) => {
     // Set HttpOnly cookie
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true",
-      sameSite: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true" ? "none" : "lax",
+      secure: true, // MUST be true for cross-domain
+      sameSite: "none", // MUST be 'none' for cross-domain (Vercel -> Render)
       maxAge: 60 * 60 * 1000, // 1 hour
     });
-
+    
     return sendSuccess(res, { user }, "Login successful");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Login failed";
@@ -62,8 +62,8 @@ export const verifyEmail = async (req: Request, res: Response) => {
     // Issue an auth cookie so the user is auto-logged in after verification
     res.cookie("accessToken", result.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true",
-      sameSite: process.env.NODE_ENV === "production" || process.env.SECURE_COOKIES === "true" ? "none" : "lax",
+      secure: true, // MUST be true for cross-domain
+      sameSite: "none", // MUST be 'none' for cross-domain
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
