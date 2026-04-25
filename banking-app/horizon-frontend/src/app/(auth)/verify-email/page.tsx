@@ -35,8 +35,8 @@ function VerifyEmailContent() {
         document.cookie = "isLoggedIn=true; path=/; max-age=3600; SameSite=Lax";
 
         // Update Zustand store if user was returned (auto-login)
-        if (user) {
-          useAuthStore.setState({ user, isAuthenticated: true });
+        if (user && res.data?.data?.accessToken) {
+          useAuthStore.setState({ user, token: res.data.data.accessToken, isAuthenticated: true });
         }
 
         setStatus("success");

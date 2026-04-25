@@ -9,7 +9,19 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  // Manual token handling removed. Browser will automatically send httpOnly cookies.
+  // Read token from localStorage as a fallback against browsers blocking 3rd-party cross-site cookies
+  try {
+    const authStorage = localStorage.getItem("horizon-auth");
+    if (authStorage) {
+      const parsed = JSON.parse(authStorage);
+      const token = parsed?.state?.token;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch (err) {
+    console.error("Failed to parse auth token", err);
+  }
   return config;
 });
 

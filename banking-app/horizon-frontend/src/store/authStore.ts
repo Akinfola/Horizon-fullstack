@@ -15,6 +15,7 @@ const clearAuthCookie = () => {
 
 interface AuthState {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
@@ -30,6 +31,7 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       isLoading: false,
 
@@ -37,8 +39,8 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
         try {
           const res = await authApi.login({ email, password });
-          const { user } = res.data.data;
-          set({ user, isAuthenticated: true });
+          const { user, accessToken } = res.data.data;
+          set({ user, token: accessToken, isAuthenticated: true });
           setAuthCookie();
         } catch (error: any) {
           throw new Error(getErrorMessage(error));
@@ -65,7 +67,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error) {
           console.error("Logout error:", error);
         } finally {
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, token: null, isAuthenticated: false });
           clearAuthCookie();
         }
       },
@@ -75,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
           const res = await authApi.me();
           set({ user: res.data.data, isAuthenticated: true });
         } catch {
-          set({ user: null, isAuthenticated: false });
+          set({ user: null, token: null, isAuthenticated: false });
         }
       },
 
@@ -116,6 +118,7 @@ export const useAuthStore = create<AuthState>()(
       name: "horizon-auth",
       partialize: (state) => ({
         user: state.user,
+        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     }

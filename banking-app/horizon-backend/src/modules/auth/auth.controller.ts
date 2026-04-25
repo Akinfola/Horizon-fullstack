@@ -37,7 +37,7 @@ export const login = async (req: Request, res: Response) => {
       maxAge: 60 * 60 * 1000, // 1 hour
     });
     
-    return sendSuccess(res, { user }, "Login successful");
+    return sendSuccess(res, { user, accessToken }, "Login successful");
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Login failed";
     const statusCode = message.includes("locked") ? 423 : 401;
@@ -67,7 +67,7 @@ export const verifyEmail = async (req: Request, res: Response) => {
       maxAge: 60 * 60 * 1000, // 1 hour
     });
 
-    return sendSuccess(res, { user: result.user }, result.message);
+    return sendSuccess(res, { user: result.user, accessToken: result.accessToken }, result.message);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Email verification failed";
     return sendError(res, message, 400);
