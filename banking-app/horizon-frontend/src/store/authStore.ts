@@ -4,6 +4,15 @@ import { User } from "@/types";
 import { authApi } from "@/lib/api";
 import { getErrorMessage } from "@/utils/errorUtils";
 
+// Set a lightweight cookie on the frontend domain so Next.js middleware can
+// detect auth state. The actual auth token remains an httpOnly cookie on the backend.
+const setAuthCookie = () => {
+  document.cookie = "isLoggedIn=true; path=/; max-age=3600; SameSite=Lax";
+};
+const clearAuthCookie = () => {
+  document.cookie = "isLoggedIn=; path=/; max-age=0";
+};
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
@@ -30,6 +39,7 @@ export const useAuthStore = create<AuthState>()(
           const res = await authApi.login({ email, password });
           const { user } = res.data.data;
           set({ user, isAuthenticated: true });
+          setAuthCookie();
         } catch (error: any) {
           throw new Error(getErrorMessage(error));
         } finally {
@@ -56,6 +66,7 @@ export const useAuthStore = create<AuthState>()(
           console.error("Logout error:", error);
         } finally {
           set({ user: null, isAuthenticated: false });
+          clearAuthCookie();
         }
       },
 

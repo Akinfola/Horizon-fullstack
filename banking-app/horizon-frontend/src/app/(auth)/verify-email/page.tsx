@@ -2,9 +2,10 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Loader2, CheckCircle2, XCircle, Mail, RefreshCw } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { authApi } from "@/lib/api";
+import { useAuthStore } from "@/store/authStore";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -16,6 +17,7 @@ function VerifyEmailContent() {
   const [countdown, setCountdown] = useState(3);
   const [resendEmail, setResendEmail] = useState("");
   const [resendStatus, setResendStatus] = useState<"idle" | "sending" | "sent">("idle");
+  const { login: storeLogin } = useAuthStore();
 
   useEffect(() => {
     if (!token) {
@@ -26,15 +28,24 @@ function VerifyEmailContent() {
 
     const verify = async () => {
       try {
-        await authApi.verifyEmail(token);
+        const res = await authApi.verifyEmail(token);
+        const user = res.data?.data?.user;
+
+        // Set the isLoggedIn cookie on the Vercel domain so middleware allows /dashboard
+        document.cookie = "isLoggedIn=true; path=/; max-age=3600; SameSite=Lax";
+
+        // Update Zustand store if user was returned (auto-login)
+        if (user) {
+          useAuthStore.setState({ user, isAuthenticated: true });
+        }
+
         setStatus("success");
         setMessage("Your email has been verified! Taking you to your dashboard...");
       } catch (err: any) {
         const errorMsg = (err.response?.data?.message || "").toLowerCase();
         if (errorMsg.includes("already verified") || errorMsg.includes("invalid or expired")) {
-          // Token already used — treat as success, redirect to login since we can't auto-login
           setStatus("success");
-          setMessage("Your email is already verified. Taking you to login...");
+          setMessage("Your email is already verified. Redirecting to login...");
         } else {
           setStatus("error");
           setMessage(err.response?.data?.message || "Verification failed. The link may have expired.");
