@@ -20,7 +20,10 @@ export default function Sidebar() {
   const { user, logout } = useAuthStore();
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleLogout = () => { logout(); router.push("/login"); };
+  const handleLogout = async () => { 
+    await logout(); 
+    window.location.href = "/login"; 
+  };
 
   const navContent = (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", padding: "1.5rem 1rem", paddingBottom: "2.5rem" }}>
