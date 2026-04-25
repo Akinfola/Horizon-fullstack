@@ -18,6 +18,8 @@ api.interceptors.response.use(
   (error) => {
     const isAuthRoute = error.config?.url?.includes("/auth/login") || error.config?.url?.includes("/auth/register");
     if (error.response?.status === 401 && !isAuthRoute) {
+      // CLEAR the isLoggedIn cookie so the middleware doesn't bounce us back to /dashboard
+      document.cookie = "isLoggedIn=; path=/; max-age=0";
       window.location.href = "/login";
     }
     return Promise.reject(error);
