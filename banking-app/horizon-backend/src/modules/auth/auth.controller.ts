@@ -15,7 +15,7 @@ import { AuthRequest } from "../../middlewares/auth.middleware";
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const result = await registerService(req.body);
+    const result = (await registerService(req.body)) as any;
     return sendSuccess(res, result, result.message, 201);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Registration failed";
