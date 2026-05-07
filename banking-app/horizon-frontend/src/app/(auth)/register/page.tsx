@@ -79,10 +79,11 @@ export default function RegisterPage() {
       await registerUser({ firstName, lastName, address, state, postalCode, dateOfBirth, ssn, email, password });
       setModal({
         show: true, type: "success",
-        title: "Account Created! 🎉",
-        message: `Welcome to Horizon Banking, ${firstName}! Your account has been created successfully. You will be redirected to the login page shortly to sign in.`,
+        title: "Registration Successful! 📧",
+        message: `Welcome to Horizon Banking, ${firstName}! We've sent a verification link to your email (${email}). Please verify your account before attempting to log in.`,
       });
-      setTimeout(() => router.push("/login"), 2500);
+      // Give the user more time to read the message about the email
+      setTimeout(() => router.push("/login"), 5000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Please check your details and try again.";
 
