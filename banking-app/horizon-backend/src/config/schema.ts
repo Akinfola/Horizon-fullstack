@@ -42,6 +42,7 @@ export const users = pgTable("users", {
   email:       varchar("email", { length: 255 }).notNull().unique(),
   password:    varchar("password", { length: 255 }).notNull(),
   address:     text("address"),
+  country:     varchar("country", { length: 100 }),
   state:       varchar("state", { length: 100 }),
   postalCode:  varchar("postal_code", { length: 20 }),
   dateOfBirth: varchar("date_of_birth", { length: 20 }),

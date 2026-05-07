@@ -4,6 +4,7 @@ export interface User {
   lastName: string;
   email: string;
   address?: string;
+  country?: string;
   state?: string;
   postalCode?: string;
   dateOfBirth?: string;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader2, Eye, EyeOff, CheckCircle, XCircle } from "lucide-react";
+import { Country, State } from "country-state-city";
 import { useAuthStore } from "@/store/authStore";
 import AlertModal from "@/components/ui/AlertModal";
 
@@ -30,6 +31,7 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
+  const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
   const [dateOfBirth, setDateOfBirth] = useState("");
@@ -76,7 +78,7 @@ export default function RegisterPage() {
     }
 
     try {
-      await registerUser({ firstName, lastName, address, state, postalCode, dateOfBirth, ssn, email, password });
+      await registerUser({ firstName, lastName, address, country, state, postalCode, dateOfBirth, ssn, email, password });
       setModal({
         show: true, type: "success",
         title: "Registration Successful! 📧",
@@ -179,16 +181,50 @@ export default function RegisterPage() {
           <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your specific address" style={inputStyle} required />
         </div>
 
-        {/* State & Postal */}
+        {/* Country & State */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
           <div>
-            <label style={labelStyle}>State</label>
-            <input type="text" value={state} onChange={e => setState(e.target.value)} placeholder="ex: NY" style={inputStyle} required />
+            <label style={labelStyle}>Country</label>
+            <select
+              value={country}
+              onChange={(e) => {
+                setCountry(e.target.value);
+                setState(""); // Reset state when country changes
+              }}
+              style={inputStyle}
+              required
+            >
+              <option value="">Select Country</option>
+              {Country.getAllCountries().map((c) => (
+                <option key={c.isoCode} value={c.isoCode}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
-            <label style={labelStyle}>Postal Code</label>
-            <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="ex: 11101" style={inputStyle} required />
+            <label style={labelStyle}>State / Province</label>
+            <select
+              value={state}
+              onChange={(e) => setState(e.target.value)}
+              style={inputStyle}
+              disabled={!country}
+              required
+            >
+              <option value="">Select State</option>
+              {country && State.getStatesOfCountry(country).map((s) => (
+                <option key={s.isoCode} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
+
+        {/* Postal Code */}
+        <div>
+          <label style={labelStyle}>Postal Code</label>
+          <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="ex: 11101" style={inputStyle} required />
         </div>
 
         {/* DOB & SSN */}

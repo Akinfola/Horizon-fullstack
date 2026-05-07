@@ -5,19 +5,19 @@ import dotenv from "dotenv";
 dotenv.config();
 
 /**
- * Sends an email using Postmark (production) or NodeMailer (fallback/development).
+ * Sends an email using Postmark (production) or NodeMailer (SMTP fallback).
  */
 export const sendEmail = async (to: string, subject: string, text: string, html?: string) => {
   const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
-  const postmarkFrom = process.env.POSTMARK_FROM_EMAIL || "noreply@horizonbank.com";
+  const emailFrom = process.env.EMAIL_FROM || "noreply@horizonbank.com";
 
   try {
-    // ─── 1. Try Postmark (Production) ──────────────────────────────────────────
+    // ─── 1. Try Postmark ───────────────────────────────────────────────────────
     if (postmarkToken) {
       console.log("📨 Sending email via Postmark...");
       const client = new postmark.ServerClient(postmarkToken);
       const result = await client.sendEmail({
-        From: postmarkFrom,
+        From: emailFrom,
         To: to,
         Subject: subject,
         TextBody: text,
@@ -28,18 +28,21 @@ export const sendEmail = async (to: string, subject: string, text: string, html?
       return result;
     }
 
-    // ─── 2. Fallback to NodeMailer (Development/SMTP) ──────────────────────────
-    console.log("🔄 No Postmark token found. Falling back to NodeMailer...");
+    // ─── 2. Fallback to NodeMailer (SMTP) ──────────────────────────────────────
+    console.log("🔄 Using NodeMailer SMTP...");
     
     let transporter;
     if (process.env.EMAIL_HOST && process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      console.log(`📡 Connecting to ${process.env.EMAIL_HOST}:${process.env.EMAIL_PORT || 587}...`);
       transporter = nodemailer.createTransport({
         host: process.env.EMAIL_HOST,
         port: Number(process.env.EMAIL_PORT) || 587,
+        secure: Number(process.env.EMAIL_PORT) === 465,
         auth: {
           user: process.env.EMAIL_USER,
           pass: process.env.EMAIL_PASS,
         },
+        tls: { rejectUnauthorized: false }, // Prevent issues with some SMTP servers
       });
     } else {
       console.log("🧪 Creating Ethereal testing account...");
@@ -48,15 +51,12 @@ export const sendEmail = async (to: string, subject: string, text: string, html?
         host: "smtp.ethereal.email",
         port: 587,
         secure: false,
-        auth: {
-          user: testAccount.user,
-          pass: testAccount.pass,
-        },
+        auth: { user: testAccount.user, pass: testAccount.pass },
       });
     }
 
     const info = await transporter.sendMail({
-      from: `"Horizon Banking" <${postmarkFrom}>`,
+      from: `"Horizon Banking" <${emailFrom}>`,
       to,
       subject,
       text,
@@ -64,15 +64,16 @@ export const sendEmail = async (to: string, subject: string, text: string, html?
     });
 
     console.log("✅ NodeMailer message sent: %s", info.messageId);
-
-    // Preview only available when sending through an Ethereal account
     if (info.messageId && nodemailer.getTestMessageUrl(info)) {
       console.log("🔗 Preview URL: %s", nodemailer.getTestMessageUrl(info));
     }
 
     return info;
-  } catch (error) {
+  } catch (error: any) {
     console.error("❌ Error sending email:", error);
-    throw new Error("Failed to send email");
+    if (error.code) console.error("   Error Code:", error.code);
+    if (error.response) console.error("   Error Response:", error.response);
+    
+    throw new Error(`Failed to send email: ${error.message || "Unknown error"}`);
   }
 };

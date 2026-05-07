@@ -14,6 +14,7 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: passwordSchema,
   address: z.string().optional(),
+  country: z.string().optional(),
   state: z.string().optional(),
   postalCode: z.string().optional(),
   dateOfBirth: z.string().optional(),
