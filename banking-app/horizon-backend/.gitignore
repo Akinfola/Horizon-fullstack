@@ -8,3 +8,4 @@ create-test-user.ts
 delete-user.ts
 check-ssn.ts
 wipe-render-db.ts
+reset-db.ts
