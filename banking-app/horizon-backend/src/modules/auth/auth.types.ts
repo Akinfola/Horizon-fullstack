@@ -18,7 +18,6 @@ export const registerSchema = z.object({
   state: z.string().optional(),
   postalCode: z.string().optional(),
   dateOfBirth: z.string().optional(),
-  ssn: z.string().length(4, "SSN must be exactly 4 digits").optional(),
 });
 
 export const loginSchema = z.object({

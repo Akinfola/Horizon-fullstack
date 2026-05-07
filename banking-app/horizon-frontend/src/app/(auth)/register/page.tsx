@@ -31,11 +31,15 @@ export default function RegisterPage() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
+  const [addressSuggestions, setAddressSuggestions] = useState<any[]>([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
   const [country, setCountry] = useState("");
   const [state, setState] = useState("");
   const [postalCode, setPostalCode] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [ssn, setSsn] = useState("");
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -54,15 +58,7 @@ export default function RegisterPage() {
       return;
     }
 
-    if (!/^\d{4}$/.test(ssn)) {
-      setModal({
-        show: true, type: "error",
-        title: "Invalid SSN",
-        message: "Your SSN must be exactly 4 digits. Please check and try again.",
-      });
-      return;
-    }
-
+    const dateOfBirth = `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`;
     const dob = new Date(dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - dob.getFullYear();
@@ -77,15 +73,23 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!dobDay || !dobMonth || !dobYear) {
+      setModal({
+        show: true, type: "error",
+        title: "Incomplete DOB",
+        message: "Please select your full date of birth.",
+      });
+      return;
+    }
+
     try {
-      await registerUser({ firstName, lastName, address, country, state, postalCode, dateOfBirth, ssn, email, password });
+      await registerUser({ firstName, lastName, address, country, state, postalCode, dateOfBirth, email, password });
       setModal({
         show: true, type: "success",
         title: "Registration Successful! 📧",
-        message: `Welcome to Horizon Banking, ${firstName}! We've sent a verification link to your email (${email}). Please verify your account before attempting to log in.`,
+        message: "Your account has been created. A verification link has been sent to your email. Redirecting to login...",
       });
-      // Give the user more time to read the message about the email
-      setTimeout(() => router.push("/login"), 5000);
+      setTimeout(() => router.push("/login"), 3000);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Something went wrong. Please check your details and try again.";
 
@@ -113,6 +117,63 @@ export default function RegisterPage() {
           title: "Registration Failed",
           message: msg,
         });
+      }
+    }
+  };
+
+  const handleAddressChange = (val: string) => {
+    setAddress(val);
+
+    // Clear previous timeout
+    if (searchTimeout) clearTimeout(searchTimeout);
+
+    if (val.length < 5) {
+      setAddressSuggestions([]);
+      return;
+    }
+
+    // Debounce the API call (wait 600ms after user stops typing)
+    const timeout = setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        // Use Nominatim with an identification param (as per their policy)
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5&email=support@horizonbanking.com`
+        );
+        
+        if (!res.ok) throw new Error("Network response was not ok");
+        
+        const data = await res.json();
+        setAddressSuggestions(data);
+      } catch (err) {
+        console.warn("Address search failed:", err);
+        setAddressSuggestions([]);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 600);
+
+    setSearchTimeout(timeout);
+  };
+
+  const handleSelectAddress = (sug: any) => {
+    const addr = sug.address;
+    setAddress(sug.display_name);
+    setAddressSuggestions([]);
+
+    // Auto-fill postal code
+    if (addr.postcode) setPostalCode(addr.postcode);
+
+    // Auto-fill country if possible
+    if (addr.country_code) {
+      const countryCode = addr.country_code.toUpperCase();
+      setCountry(countryCode);
+
+      // Auto-fill state (matching the name)
+      if (addr.state) {
+        const states = State.getStatesOfCountry(countryCode);
+        const match = states.find(s => s.name.toLowerCase().includes(addr.state.toLowerCase()));
+        if (match) setState(match.name);
       }
     }
   };
@@ -175,10 +236,63 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Address */}
-        <div>
-          <label style={labelStyle}>Address</label>
-          <input type="text" value={address} onChange={e => setAddress(e.target.value)} placeholder="Enter your specific address" style={inputStyle} required />
+        {/* Nearest Landmark */}
+        <div style={{ position: "relative" }}>
+          <label style={labelStyle}>Nearest Landmark</label>
+          <input
+            type="text"
+            value={address}
+            onChange={e => handleAddressChange(e.target.value)}
+            placeholder="e.g. Eiffel Tower, Mall of America, or your area name..."
+            style={inputStyle}
+            required
+            autoComplete="off"
+          />
+          {isSearchingAddress && (
+            <div style={{ position: "absolute", right: "0.75rem", top: "2.3rem" }}>
+              <Loader2 size={16} className="animate-spin" color="#2563eb" />
+            </div>
+          )}
+
+          {/* Suggestions Dropdown */}
+          {addressSuggestions.length > 0 && (
+            <div style={{
+              position: "absolute",
+              top: "100%",
+              left: 0,
+              right: 0,
+              zIndex: 50,
+              backgroundColor: "white",
+              border: "1px solid #e5e7eb",
+              borderRadius: "0.5rem",
+              marginTop: "0.25rem",
+              boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+              maxHeight: "200px",
+              overflowY: "auto"
+            }}>
+              {addressSuggestions.map((sug, i) => (
+                <div
+                  key={i}
+                  onClick={() => handleSelectAddress(sug)}
+                  style={{
+                    padding: "0.75rem 1rem",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    borderBottom: i === addressSuggestions.length - 1 ? "none" : "1px solid #f3f4f6"
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#f9fafb")}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                >
+                  <p style={{ fontWeight: "500", color: "#111827", marginBottom: "0.125rem" }}>
+                    {sug.address.road || sug.display_name.split(",")[0]}
+                  </p>
+                  <p style={{ fontSize: "0.75rem", color: "#6b7280", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {sug.display_name}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Country & State */}
@@ -227,19 +341,37 @@ export default function RegisterPage() {
           <input type="text" value={postalCode} onChange={e => setPostalCode(e.target.value)} placeholder="ex: 11101" style={inputStyle} required />
         </div>
 
-        {/* DOB & SSN */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-          <div>
-            <label style={labelStyle}>Date of Birth</label>
-            <input type="date" value={dateOfBirth} onChange={e => setDateOfBirth(e.target.value)} style={inputStyle} required />
-          </div>
-          <div>
-            <label style={labelStyle}>SSN (last 4 digits)</label>
-            <input
-              type="text" value={ssn}
-              onChange={e => setSsn(e.target.value.replace(/\D/g, "").slice(0, 4))}
-              placeholder="ex: 1234" maxLength={4} style={inputStyle} required
-            />
+        {/* Date of Birth */}
+        <div>
+          <label style={labelStyle}>Date of Birth</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr 1.5fr", gap: "0.75rem" }}>
+            {/* Day */}
+            <select value={dobDay} onChange={e => setDobDay(e.target.value)} style={inputStyle} required>
+              <option value="">Day</option>
+              {Array.from({ length: 31 }, (_, i) => (
+                <option key={i + 1} value={i + 1}>{i + 1}</option>
+              ))}
+            </select>
+
+            {/* Month */}
+            <select value={dobMonth} onChange={e => setDobMonth(e.target.value)} style={inputStyle} required>
+              <option value="">Month</option>
+              {[
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+              ].map((m, i) => (
+                <option key={m} value={i + 1}>{m}</option>
+              ))}
+            </select>
+
+            {/* Year */}
+            <select value={dobYear} onChange={e => setDobYear(e.target.value)} style={inputStyle} required>
+              <option value="">Year</option>
+              {Array.from({ length: 100 }, (_, i) => {
+                const y = new Date().getFullYear() - i;
+                return <option key={y} value={y}>{y}</option>;
+              })}
+            </select>
           </div>
         </div>
 

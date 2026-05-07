@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuthStore } from "@/store/authStore";
 import AlertModal from "@/components/ui/AlertModal";
-import { Mail, MapPin, Calendar, User as UserIcon } from "lucide-react";
+import { Mail, MapPin, Calendar, User as UserIcon, Loader2 } from "lucide-react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
 export default function ProfilePage() {
@@ -261,8 +261,9 @@ export default function ProfilePage() {
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
             >
+              {isSaving && <Loader2 className="animate-spin" size={16} />}
               {isSaving ? "Saving..." : "Save Changes"}
             </button>
             <button

@@ -30,10 +30,33 @@ export const registerService = async (input: RegisterInput) => {
         throw new Error("Email already in use");
       }
 
-      // 2. Hash password and generate token
+      // 2. Hash password and generate token/SSN
       const hashedPassword = await bcrypt.hash(input.password, 12);
       const verificationToken = crypto.randomBytes(32).toString("hex");
       const verificationTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+      
+      // Generate unique automated 4-digit SSN
+      let generatedSsn = "";
+      let ssnExists = true;
+      let ssnAttempts = 0;
+
+      while (ssnExists && ssnAttempts < 10) {
+        generatedSsn = Math.floor(1000 + Math.random() * 9000).toString();
+        const existingSsn = await tx
+          .select()
+          .from(users)
+          .where(eq(users.ssn, generatedSsn))
+          .limit(1);
+        
+        if (existingSsn.length === 0) {
+          ssnExists = false;
+        }
+        ssnAttempts++;
+      }
+
+      if (ssnExists) {
+        throw new Error("Registration failed: could not generate a unique identification number. Please try again.");
+      }
 
       // 3. Insert user
       const [newUser] = await tx
@@ -48,7 +71,7 @@ export const registerService = async (input: RegisterInput) => {
           state: input.state,
           postalCode: input.postalCode,
           dateOfBirth: input.dateOfBirth,
-          ssn: input.ssn,
+          ssn: generatedSsn,
           isVerified: false,
           verificationToken,
           verificationTokenExpiry,
@@ -56,22 +79,26 @@ export const registerService = async (input: RegisterInput) => {
         .returning();
 
       // 4. Send verification email
-      // We do this BEFORE the transaction commits. If email fails, transaction rolls back.
       const verifyUrl = `${CLIENT_URL}/verify-email?token=${verificationToken}`;
       
       try {
         await sendEmail(
           newUser.email,
           "Verify Your Horizon Banking Account",
-          `Hello ${newUser.firstName},\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 1 hour.\n\nIf you did not create an account, you can safely ignore this email.`,
+          `Hello ${newUser.firstName},\n\nWelcome to Horizon Banking! Your automated 4-digit SSN is: ${generatedSsn}. Please keep your SSN safe and secured.\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 1 hour.`,
           `<h2>Welcome to Horizon Banking, ${newUser.firstName}!</h2>
-           <p>Please verify your email address to activate your account.</p>
+           <p>We are excited to have you on board.</p>
+           <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+             <p style="margin: 0; font-size: 14px; color: #374151;">Your automated 4-digit SSN is:</p>
+             <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: bold; color: #111827; letter-spacing: 4px;">${generatedSsn}</p>
+             <p style="margin: 12px 0 0 0; font-size: 12px; color: #ef4444; font-weight: 600;">⚠️ IMPORTANT: Keep your SSN safe and secured. Do not share it with anyone.</p>
+           </div>
+           <p>Please verify your email address to activate your account:</p>
            <div style="margin: 24px 0;">
              <a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1a56db;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
            </div>
            <p>Or copy and paste this link into your browser:<br/>${verifyUrl}</p>
-           <p><strong>This link expires in 1 hour.</strong></p>
-           <p>If you did not create an account, you can safely ignore this email.</p>`
+           <p><strong>This link expires in 1 hour.</strong></p>`
         );
       } catch (emailError) {
         console.error("❌ Registration Email Error:", emailError);
