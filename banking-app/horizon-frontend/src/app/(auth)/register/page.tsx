@@ -467,7 +467,7 @@ export default function RegisterPage() {
             gap: "0.5rem", fontSize: "0.875rem",
           }}
         >
-          {isLoading && <Loader2 size={16} />}
+          {isLoading && <Loader2 className="animate-spin" size={16} />}
           {isLoading ? "Creating account..." : "Sign up"}
         </button>
       </form>

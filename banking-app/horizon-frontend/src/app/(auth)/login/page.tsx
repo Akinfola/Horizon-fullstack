@@ -91,7 +91,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ width: "100%", maxWidth: "420px" }}>
+    <div style={{ width: "100%", maxWidth: "500px", paddingTop: "2rem", paddingBottom: "2rem" }}>
       {/* Logo */}
       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "2rem" }}>
         <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
@@ -161,7 +161,7 @@ export default function LoginPage() {
             gap: "0.5rem", fontSize: "0.875rem",
           }}
         >
-          {isLoading && <Loader2 size={16} />}
+          {isLoading && <Loader2 className="animate-spin" size={16} />}
           {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
