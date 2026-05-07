@@ -81,36 +81,32 @@ export const registerService = async (input: RegisterInput) => {
       return userRecord;
     });
 
-    // 4. Send verification email (Outside transaction for speed)
+    // 4. Send verification email (Fire and forget for speed)
     const verifyUrl = `${CLIENT_URL}/verify-email?token=${registeredUser.verificationToken}`;
-    try {
-      await sendEmail(
-        registeredUser.email,
-        "Verify Your Horizon Banking Account",
-        `Hello ${registeredUser.firstName},\n\nWelcome to Horizon Banking! Your automated 4-digit SSN is: ${registeredUser.ssn}. Please keep your SSN safe and secured.\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 1 hour.`,
-        `<h2>Welcome to Horizon Banking, ${registeredUser.firstName}!</h2>
-         <p>We are excited to have you on board.</p>
-         <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
-           <p style="margin: 0; font-size: 14px; color: #374151;">Your automated 4-digit SSN is:</p>
-           <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: bold; color: #111827; letter-spacing: 4px;">${registeredUser.ssn}</p>
-           <p style="margin: 12px 0 0 0; font-size: 12px; color: #ef4444; font-weight: 600;">⚠️ IMPORTANT: Keep your SSN safe and secured. Do not share it with anyone.</p>
-         </div>
-         <p>Please verify your email address to activate your account:</p>
-         <div style="margin: 24px 0;">
-           <a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1a56db;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
-         </div>
-         <p>Or copy and paste this link into your browser:<br/>${verifyUrl}</p>`
-      );
-    } catch (emailError) {
-      console.error("❌ Registration Email Error:", emailError);
-    }
+    sendEmail(
+      registeredUser.email,
+      "Verify Your Horizon Banking Account",
+      `Hello ${registeredUser.firstName},\n\nWelcome to Horizon Banking! Your automated 4-digit SSN is: ${registeredUser.ssn}. Please keep your SSN safe and secured.\n\nPlease verify your email by clicking the link below:\n${verifyUrl}\n\nThis link expires in 1 hour.`,
+      `<h2>Welcome to Horizon Banking, ${registeredUser.firstName}!</h2>
+       <p>We are excited to have you on board.</p>
+       <div style="background-color: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+         <p style="margin: 0; font-size: 14px; color: #374151;">Your automated 4-digit SSN is:</p>
+         <p style="margin: 8px 0 0 0; font-size: 24px; font-weight: bold; color: #111827; letter-spacing: 4px;">${registeredUser.ssn}</p>
+         <p style="margin: 12px 0 0 0; font-size: 12px; color: #ef4444; font-weight: 600;">⚠️ IMPORTANT: Keep your SSN safe and secured. Do not share it with anyone.</p>
+       </div>
+       <p>Please verify your email address to activate your account:</p>
+       <div style="margin: 24px 0;">
+         <a href="${verifyUrl}" style="display:inline-block;padding:12px 24px;background:#1a56db;color:#fff;border-radius:6px;text-decoration:none;font-weight:bold;">Verify Email</a>
+       </div>
+       <p>Or copy and paste this link into your browser:<br/>${verifyUrl}</p>`
+    ).catch((err) => console.error("❌ Background Email Error:", err));
 
-    // 5. Create audit log
-    await createAuditLog({
+    // 5. Create audit log (Fire and forget)
+    createAuditLog({
       userId: registeredUser.id,
       action: "REGISTER",
       metadata: { email: registeredUser.email },
-    });
+    }).catch((err) => console.error("❌ Background Audit Error:", err));
 
     return {
       message: "Registration successful. Please check your email to verify your account before logging in.",
