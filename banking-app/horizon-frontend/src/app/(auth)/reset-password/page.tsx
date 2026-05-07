@@ -23,6 +23,7 @@ function ResetPasswordForm() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [modal, setModal] = useState<{
     show: boolean;
@@ -175,14 +176,23 @@ function ResetPasswordForm() {
           <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", color: "#374151", marginBottom: "0.375rem" }}>
             Confirm Password
           </label>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Repeat your password"
-            required
-            style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid #d1d5db", backgroundColor: "white", padding: "0.75rem 1rem", fontSize: "0.875rem", color: "#111827", outline: "none", boxSizing: "border-box" }}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Repeat your password"
+              required
+              style={{ width: "100%", borderRadius: "0.5rem", border: "1px solid #d1d5db", backgroundColor: "white", padding: "0.75rem 2.5rem 0.75rem 1rem", fontSize: "0.875rem", color: "#111827", outline: "none", boxSizing: "border-box" }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af" }}
+            >
+              {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
         </div>
 
         <button

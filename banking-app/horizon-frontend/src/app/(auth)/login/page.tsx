@@ -59,6 +59,9 @@ export default function LoginPage() {
     }
 
     try {
+      // Add artificial delay to show off the premium loader
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       await login(email, password);
       setModal({
         show: true, type: "success",
