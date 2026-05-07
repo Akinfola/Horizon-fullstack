@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "npm run db:migrate && node dist/server.js",
     "db:generate": "drizzle-kit generate --config=drizzle.config.ts",
     "db:migrate": "drizzle-kit push --config=drizzle.config.ts --force",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts"
